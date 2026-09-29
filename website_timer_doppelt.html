@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Digitaler Doppel-Timer</title>
+  <title>Digitaler Doppel-Timer für Leistungsnachweise</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -155,7 +155,7 @@
 
     /* Editable Title */
     .timer-title {
-      font-size: 1.5rem;
+      font-size: 1.35rem;
       font-weight: 600;
       color: var(--accent);
       background: transparent;
@@ -164,7 +164,8 @@
       padding: 0.25rem 0.75rem;
       text-align: center;
       outline: none;
-      max-width: 90%;
+      width: 100%;
+      max-width: 95%;
       transition: border-color 0.2s;
     }
 
@@ -180,9 +181,61 @@
       font-weight: 700;
       letter-spacing: 2px;
       color: var(--text-main);
-      margin: 1rem 0;
+      margin: 0.5rem 0;
       line-height: 1;
       user-select: none;
+      cursor: pointer;
+      padding: 0.2rem 1rem;
+      border-radius: 12px;
+      transition: background-color 0.2s, color 0.2s;
+      position: relative;
+    }
+
+    .timer-display:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--accent);
+    }
+
+    .timer-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    /* Dropdown Selector */
+    .dropdown-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .dropdown-label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .select-dropdown {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 0.4rem 0.8rem;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .select-dropdown:focus {
+      border-color: var(--accent);
     }
 
     /* Control Groups */
@@ -292,15 +345,16 @@
   <main>
     <!-- Timer 1 -->
     <section class="timer-card" id="timerCard1">
-      <input type="text" class="timer-title" value="Arbeitsphase" aria-label="Timer Überschrift">
-      <div class="timer-display" id="display1">15:00</div>
+      <input type="text" class="timer-title" value="Verbleibende Zeit für Leistungsnachweis" aria-label="Timer Überschrift">
+      <div class="timer-display" id="display1" onclick="editTime(1)" title="Klicken zum manuellen Bearbeiten">45:00</div>
+      <div class="timer-hint">✏️ Klicken zum Bearbeiten der Zeit</div>
       
       <div class="controls-wrapper">
         <div class="adjust-group">
-          <button class="btn btn-adjust" onclick="adjustTime(1, -60)">-1 Min</button>
-          <button class="btn btn-adjust" onclick="adjustTime(1, -10)">-10 Sek</button>
-          <button class="btn btn-adjust" onclick="adjustTime(1, 10)">+10 Sek</button>
-          <button class="btn btn-adjust" onclick="adjustTime(1, 60)">+1 Min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(1, 60)">+1 min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(1, 120)">+2 min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(1, 300)">+5 min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(1, 600)">+10 min</button>
         </div>
 
         <div class="action-group">
@@ -312,15 +366,29 @@
 
     <!-- Timer 2 -->
     <section class="timer-card hidden" id="timerCard2">
-      <input type="text" class="timer-title" value="Pause" aria-label="Timer Überschrift">
-      <div class="timer-display" id="display2">05:00</div>
-      
+      <input type="text" class="timer-title" value="Verbleibende Zeit für Lernende mit Zeitverlängerung" aria-label="Timer Überschrift">
+      <div class="timer-display" id="display2" onclick="editTime(2)" title="Klicken zum manuellen Bearbeiten">45:00</div>
+      <div class="timer-hint">✏️ Klicken zum Bearbeiten der Zeit</div>
+
+      <!-- Extension Percentage Dropdown -->
+      <div class="dropdown-container">
+        <label for="percentSelect" class="dropdown-label">Zeitverlängerung (aus Timer 1):</label>
+        <select id="percentSelect" class="select-dropdown" onchange="calculatePercentageExtension()">
+          <option value="0">Manuell / Keine (+0%)</option>
+          <option value="5">+5%</option>
+          <option value="10">+10%</option>
+          <option value="15">+15%</option>
+          <option value="20">+20%</option>
+          <option value="25">+25%</option>
+        </select>
+      </div>
+
       <div class="controls-wrapper">
         <div class="adjust-group">
-          <button class="btn btn-adjust" onclick="adjustTime(2, -60)">-1 Min</button>
-          <button class="btn btn-adjust" onclick="adjustTime(2, -10)">-10 Sek</button>
-          <button class="btn btn-adjust" onclick="adjustTime(2, 10)">+10 Sek</button>
-          <button class="btn btn-adjust" onclick="adjustTime(2, 60)">+1 Min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(2, 60)">+1 min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(2, 120)">+2 min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(2, 300)">+5 min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(2, 600)">+10 min</button>
         </div>
 
         <div class="action-group">
@@ -335,14 +403,14 @@
     // State object for timers
     const timers = {
       1: {
-        totalSeconds: 900, // 15:00
-        initialSeconds: 900,
+        totalSeconds: 2700, // 45:00
+        initialSeconds: 2700,
         intervalId: null,
         isRunning: false
       },
       2: {
-        totalSeconds: 300, // 05:00
-        initialSeconds: 300,
+        totalSeconds: 2700, // 45:00
+        initialSeconds: 2700,
         intervalId: null,
         isRunning: false
       }
@@ -361,6 +429,59 @@
       displayEl.textContent = formatTime(timers[id].totalSeconds);
     }
 
+    // Edit time manually by clicking display
+    function editTime(id) {
+      const currentFormatted = formatTime(timers[id].totalSeconds);
+      const userInput = prompt(`Zeit für Timer ${id} eingeben (z. B. 45:00 oder 45 für 45 Minuten):`, currentFormatted);
+
+      if (userInput !== null && userInput.trim() !== "") {
+        let totalSecs = 0;
+        const parts = userInput.trim().split(':');
+
+        if (parts.length === 2) {
+          const mins = parseInt(parts[0], 10) || 0;
+          const secs = parseInt(parts[1], 10) || 0;
+          totalSecs = mins * 60 + secs;
+        } else if (parts.length === 1) {
+          const mins = parseInt(parts[0], 10) || 0;
+          totalSecs = mins * 60;
+        }
+
+        if (totalSecs >= 0) {
+          timers[id].totalSeconds = totalSecs;
+          if (!timers[id].isRunning) {
+            timers[id].initialSeconds = totalSecs;
+          }
+          document.getElementById(`timerCard${id}`).classList.remove('alarm');
+          updateDisplay(id);
+
+          // If Timer 1 changed, recalculate Timer 2 extension if selected
+          if (id === 1) {
+            calculatePercentageExtension();
+          }
+        }
+      }
+    }
+
+    // Calculate percentage extension for Timer 2 from Timer 1
+    function calculatePercentageExtension() {
+      const percentSelect = document.getElementById('percentSelect');
+      const percentage = parseInt(percentSelect.value, 10);
+
+      if (percentage > 0) {
+        const baseSeconds = timers[1].totalSeconds;
+        const extraSeconds = Math.round(baseSeconds * (percentage / 100));
+        const newTotal = baseSeconds + extraSeconds;
+
+        timers[2].totalSeconds = newTotal;
+        if (!timers[2].isRunning) {
+          timers[2].initialSeconds = newTotal;
+        }
+        document.getElementById('timerCard2').classList.remove('alarm');
+        updateDisplay(2);
+      }
+    }
+
     // Start or Pause Timer
     function toggleTimer(id) {
       const timer = timers[id];
@@ -374,7 +495,7 @@
         startBtn.textContent = 'Start';
         startBtn.className = 'btn btn-start';
       } else {
-        // Stop any active alarm on start
+        // Stop active alarm on start
         cardEl.classList.remove('alarm');
 
         if (timer.totalSeconds <= 0) return;
@@ -409,7 +530,12 @@
 
       clearInterval(timer.intervalId);
       timer.isRunning = false;
-      timer.totalSeconds = timer.initialSeconds;
+      
+      if (id === 2 && parseInt(document.getElementById('percentSelect').value, 10) > 0) {
+        calculatePercentageExtension();
+      } else {
+        timer.totalSeconds = timer.initialSeconds;
+      }
       
       startBtn.textContent = 'Start';
       startBtn.className = 'btn btn-start';
@@ -418,7 +544,7 @@
       updateDisplay(id);
     }
 
-    // Adjust Time (+/- seconds)
+    // Adjust Time (+ seconds)
     function adjustTime(id, amount) {
       const timer = timers[id];
       const cardEl = document.getElementById(`timerCard${id}`);
@@ -429,12 +555,16 @@
       if (newTotal < 0) newTotal = 0;
       
       timer.totalSeconds = newTotal;
-      // Also update initial seconds if timer is not running
       if (!timer.isRunning) {
         timer.initialSeconds = newTotal;
       }
       
       updateDisplay(id);
+
+      // Recalculate Timer 2 extension if Timer 1 was adjusted
+      if (id === 1) {
+        calculatePercentageExtension();
+      }
     }
 
     // Audio & Visual Alarm Signal
@@ -442,7 +572,6 @@
       const cardEl = document.getElementById(`timerCard${id}`);
       cardEl.classList.add('alarm');
 
-      // Play sound using Web Audio API (no external file needed)
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
@@ -465,7 +594,6 @@
           }, delay);
         }
 
-        // 3 Beeps sequence
         playBeep(0);
         playBeep(500);
         playBeep(1000);
@@ -479,9 +607,9 @@
       const timerCard2 = document.getElementById('timerCard2');
       if (e.target.checked) {
         timerCard2.classList.remove('hidden');
+        calculatePercentageExtension();
       } else {
         timerCard2.classList.add('hidden');
-        // Optionally pause timer 2 when hidden
         if (timers[2].isRunning) {
           toggleTimer(2);
         }
