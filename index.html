@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulationen für den Unterricht</title>
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --accent-color: #2563eb;
+      --accent-hover: #1d4ed8;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --radius: 16px;
+      --radius-sm: 8px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      line-height: 1.5;
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+
+    .subtitle {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    /* Card Styling */
+    .card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(37, 99, 235, 0.3);
+    }
+
+    /* Image Wrapper */
+    .card-image-wrapper {
+      position: relative;
+      width: 100%;
+      height: 190px;
+      overflow: hidden;
+      background-color: #e2e8f0;
+    }
+
+    .card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .card:hover .card-image {
+      transform: scale(1.05);
+    }
+
+    /* Subject Badge */
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background-color: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Subject Specific Badge Colors (Optional Visual Upgrade) */
+    .badge-physik { background-color: rgba(225, 29, 72, 0.85); }
+    .badge-mathe { background-color: rgba(37, 99, 235, 0.85); }
+    .badge-bio { background-color: rgba(16, 185, 129, 0.85); }
+    .badge-chemie { background-color: rgba(217, 119, 6, 0.85); }
+    .badge-info { background-color: rgba(147, 51, 234, 0.85); }
+
+    /* Card Content */
+    .card-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+      transition: color 0.2s ease;
+    }
+
+    .card:hover .card-title {
+      color: var(--accent-color);
+    }
+
+    .card-description {
+      font-size: 0.925rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+      flex-grow: 1;
+    }
+
+    /* Action Footer */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    .card-footer svg {
+      width: 16px;
+      height: 16px;
+      margin-left: 6px;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover .card-footer svg {
+      transform: translateX(4px);
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 1.5rem 1rem;
+      }
+      header {
+        margin-bottom: 2rem;
+      }
+      .grid {
+        gap: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Simulationen für den Unterricht</h1>
+      <p class="subtitle">Interaktive Lernmedien und Experimente für anschaulichen Fachunterricht</p>
+    </header>
+
+    <main class="grid">
+
+      <!-- Kachel 1 -->
+      <a href="https://beispiel-simulation.de/drehstrom" target="_blank" rel="noopener noreferrer" class="card">
+        <div class="card-image-wrapper">
+          <span class="badge badge-elektrotechnik">elektrotechnik</span>
+          <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80" alt="Drehstrom Simulation" class="card-image" loading="lazy">
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">Drehstrom - dreiphasiger Wechselstrom</h2>
+          <p class="card-description">Interaktive Phasenverläufe (L1, L2, L3) verstehen und die Entstehung des Neutralleiterstroms bei ungleicher Belastung simulieren.</p>
+          <div class="card-footer">
+            <span>Simulation starten</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Kachel 2 -->
+      <a href="https://phet.colorado.edu/sims/html/circuit-construction-kit-dc-virtual-lab/latest/circuit-construction-kit-dc-virtual-lab_all.html?locale=de" target="_blank" rel="noopener noreferrer" class="card">
+        <div class="card-image-wrapper">
+          <span class="badge badge-elektrotechnik">Elektrotechnik</span>
+          <img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80" alt="Schaltkreis-Labor" class="card-image" loading="lazy">
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">Gleichstromlabor</h2>
+          <p class="card-description">Baue Stromkreise mit Widerständen, Schaltern, Batterien und Voltmessgeräten auf und analysiere Reihen- und Parallelschaltungen.</p>
+          <div class="card-footer">
+            <span>Simulation starten</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Kachel 3 -->
+      <a href="https://beispiel-simulation.de/zellbiologie" target="_blank" rel="noopener noreferrer" class="card">
+        <div class="card-image-wrapper">
+          <span class="badge badge-bio">Biologie</span>
+          <img src="https://images.unsplash.com/photo-1530210124550-912dc1381cb8?auto=format&fit=crop&w=600&q=80" alt="Zellbiologie 3D" class="card-image" loading="lazy">
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">Zellbiologie 3D-Erkundung</h2>
+          <p class="card-description">Erkunde den Aufbau pflanzlicher und tierischer Zellen in einer dreidimensionalen Modellumgebung inklusive Organellen-Details.</p>
+          <div class="card-footer">
+            <span>Simulation starten</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Kachel 4 -->
+      <a href="https://geogebra.org" target="_blank" rel="noopener noreferrer" class="card">
+        <div class="card-image-wrapper">
+          <span class="badge badge-mathe">Mathematik</span>
+          <img src="https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80" alt="Funktionen Explorer" class="card-image" loading="lazy">
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">Funktionen & Graphen Explorer</h2>
+          <p class="card-description">Verändere Parameter von quadratischen Funktionen, Sinuskurven und Exponentialfunktionen live und beobachte die Auswirkungen.</p>
+          <div class="card-footer">
+            <span>Simulation starten</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Kachel 5 -->
+      <a href="https://beispiel-simulation.de/periodensystem" target="_blank" rel="noopener noreferrer" class="card">
+        <div class="card-image-wrapper">
+          <span class="badge badge-chemie">Chemie</span>
+          <img src="https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80" alt="Interaktives Periodensystem" class="card-image" loading="lazy">
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">Interaktives Periodensystem</h2>
+          <p class="card-description">Untersuche Schalenmodelle der Atome, Elektronenkonfigurationen, Aggregatzustände bei verschiedenen Temperaturen und Reaktivitäten.</p>
+          <div class="card-footer">
+            <span>Simulation starten</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Kachel 6 -->
+      <a href="https://beispiel-simulation.de/sortieralgorithmen" target="_blank" rel="noopener noreferrer" class="card">
+        <div class="card-image-wrapper">
+          <span class="badge badge-info">Informatik</span>
+          <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80" alt="Sortieralgorithmen Visualisierer" class="card-image" loading="lazy">
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">Sortieralgorithmen Visuell</h2>
+          <p class="card-description">Vergleiche Bubble Sort, Quick Sort und Merge Sort schrittweise in Echtzeit und verstehe Laufzeiten sowie Komplexitäten.</p>
+          <div class="card-footer">
+            <span>Simulation starten</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </div>
+        </div>
+      </a>
+
+    </main>
+  </div>
+
+</body>
+</html>

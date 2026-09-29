@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drehstrom - dreiphasiger Wechselstrom</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --radius: 16px;
+
+      /* Phase Colors */
+      --color-l1: #ef4444; /* Rot / Braun */
+      --color-l2: #eab308; /* Gelb / Schwarz-Ersatz für dunklen Hintergrund */
+      --color-l3: #a855f7; /* Violett / Grau */
+      --color-n:  #38bdf8; /* Hellblau */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      width: 100%;
+      max-width: 900px;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    main {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Diagram Container */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .legend-color {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+    }
+
+    .legend-line-dashed {
+      width: 24px;
+      height: 0;
+      border-top: 3px dashed var(--color-n);
+    }
+
+    /* Controls Grid */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.03);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .control-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .value-display {
+      font-family: 'Courier New', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border-color);
+      outline: none;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--text-main);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* Quick Preset Buttons */
+    .preset-container {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      background-color: rgba(255, 255, 255, 0.07);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+      border-color: var(--text-muted);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem 0.5rem;
+      }
+      .card {
+        padding: 1rem;
+      }
+      .canvas-container {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Drehstrom - dreiphasiger Wechselstrom</h1>
+    <p class="subtitle">Interaktive Simulation der Phasenverläufe und des Neutralleiterstroms (50 Hz)</p>
+  </header>
+
+  <main>
+    <!-- Diagramm Card -->
+    <section class="card">
+      <div class="canvas-container">
+        <canvas id="chartCanvas"></canvas>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: var(--color-l1);"></div>
+          <span>Außenleiter L1 (0°)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: var(--color-l2);"></div>
+          <span>Außenleiter L2 (120°)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: var(--color-l3);"></div>
+          <span>Außenleiter L3 (240°)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line-dashed"></div>
+          <span style="color: var(--color-n);">Neutralleiter N (i₁ + i₂ + i₃)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Regler Card -->
+    <section class="card">
+      <div class="controls-grid">
+        <!-- L1 Control -->
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-title" style="color: var(--color-l1);">
+              <span class="dot" style="background-color: var(--color-l1);"></span> Amplitude L1
+            </span>
+            <span class="value-display" id="valL1">5.0 A</span>
+          </div>
+          <input type="range" id="sliderL1" min="0" max="10" step="0.1" value="5.0">
+        </div>
+
+        <!-- L2 Control -->
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-title" style="color: var(--color-l2);">
+              <span class="dot" style="background-color: var(--color-l2);"></span> Amplitude L2
+            </span>
+            <span class="value-display" id="valL2">5.0 A</span>
+          </div>
+          <input type="range" id="sliderL2" min="0" max="10" step="0.1" value="5.0">
+        </div>
+
+        <!-- L3 Control -->
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-title" style="color: var(--color-l3);">
+              <span class="dot" style="background-color: var(--color-l3);"></span> Amplitude L3
+            </span>
+            <span class="value-display" id="valL3">5.0 A</span>
+          </div>
+          <input type="range" id="sliderL3" min="0" max="10" step="0.1" value="5.0">
+        </div>
+      </div>
+
+      <!-- Schnell-Voreinstellungen -->
+      <div class="preset-container" style="margin-top: 1.5rem;">
+        <button class="btn" onclick="setPreset(5, 5, 5)">Symmetrisch (5A / 5A / 5A)</button>
+        <button class="btn" onclick="setPreset(8, 2, 5)">Unsymmetrisch (8A / 2A / 5A)</button>
+        <button class="btn" onclick="setPreset(10, 0, 0)">Einphasen-Last (10A / 0A / 0A)</button>
+        <button class="btn" onclick="setPreset(0, 0, 0)">Aus (0A / 0A / 0A)</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('chartCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const sliderL1 = document.getElementById('sliderL1');
+    const sliderL2 = document.getElementById('sliderL2');
+    const sliderL3 = document.getElementById('sliderL3');
+
+    const valL1 = document.getElementById('valL1');
+    const valL2 = document.getElementById('valL2');
+    const valL3 = document.getElementById('valL3');
+
+    // Physical constants
+    const f = 50; // Frequency in Hz
+    const omega = 2 * Math.PI * f; // Angular frequency (rad/s)
+    const maxTime = 0.060; // 60 ms total time (3 full periods of 20ms)
+
+    // Phase shifts in radians
+    const phi1 = 0;
+    const phi2 = (2 * Math.PI) / 3; // 120 degrees
+    const phi3 = (4 * Math.PI) / 3; // 240 degrees
+
+    // Canvas styling & dimensions handling
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      draw();
+    }
+
+    function getAmplitudes() {
+      return {
+        a1: parseFloat(sliderL1.value),
+        a2: parseFloat(sliderL2.value),
+        a3: parseFloat(sliderL3.value)
+      };
+    }
+
+    function updateValueDisplays(a1, a2, a3) {
+      valL1.textContent = a1.toFixed(1) + ' A';
+      valL2.textContent = a2.toFixed(1) + ' A';
+      valL3.textContent = a3.toFixed(1) + ' A';
+    }
+
+    function setPreset(p1, p2, p3) {
+      sliderL1.value = p1;
+      sliderL2.value = p2;
+      sliderL3.value = p3;
+      draw();
+    }
+
+    function draw() {
+      const { a1, a2, a3 } = getAmplitudes();
+      updateValueDisplays(a1, a2, a3);
+
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, width, height);
+
+      // Margins
+      const paddingLeft = 50;
+      const paddingRight = 20;
+      const paddingTop = 30;
+      const paddingBottom = 40;
+
+      const graphWidth = width - paddingLeft - paddingRight;
+      const graphHeight = height - paddingTop - paddingBottom;
+      const centerY = paddingTop + graphHeight / 2;
+
+      // Dynamic Y-axis scale (Max possible sum current can be up to 30 A)
+      const maxCurrentAxis = 11; // Scale range: -20 A to +20 A
+
+      // Helper functions for coordinate transformation
+      function timeToX(t) {
+        return paddingLeft + (t / maxTime) * graphWidth;
+      }
+
+      function currentToY(i) {
+        return centerY - (i / maxCurrentAxis) * (graphHeight / 2);
+      }
+
+      // --- Draw Grid & Axes ---
+      ctx.lineWidth = 1;
+
+      // Y Grid lines & Labels (-20A to +20A in steps of 5A)
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+
+      for (let i = -20; i <= 20; i += 5) {
+        const y = currentToY(i);
+        
+        // Grid Line
+        ctx.strokeStyle = (i === 0) ? '#64748b' : '#334155';
+        ctx.lineWidth = (i === 0) ? 1.5 : 0.5;
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, y);
+        ctx.lineTo(width - paddingRight, y);
+        ctx.stroke();
+
+        // Y Label
+        ctx.fillStyle = (i === 0) ? '#f8fafc' : '#94a3b8';
+        ctx.fillText(`${i > 0 ? '+' : ''}${i} A`, paddingLeft - 8, y);
+      }
+
+      // X Grid lines & Labels (0 ms to 60 ms, every 5 ms & 20 ms periods marked)
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      for (let ms = 0; ms <= 60; ms += 5) {
+        const t = ms / 1000;
+        const x = timeToX(t);
+
+        const isPeriodBoundary = (ms % 20 === 0);
+        ctx.strokeStyle = isPeriodBoundary ? '#475569' : '#1e293b';
+        ctx.lineWidth = isPeriodBoundary ? 1 : 0.5;
+
+        ctx.beginPath();
+        ctx.moveTo(x, paddingTop);
+        ctx.lineTo(x, height - paddingBottom);
+        ctx.stroke();
+
+        // Label every 10 ms
+        if (ms % 10 === 0) {
+          ctx.fillStyle = isPeriodBoundary ? '#f8fafc' : '#94a3b8';
+          ctx.fillText(`${ms} ms`, x, height - paddingBottom + 8);
+        }
+      }
+
+      // Period labels (T1, T2, T3)
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px system-ui, sans-serif';
+      ctx.fillText('1. Periode (20ms)', timeToX(0.010), paddingTop - 20);
+      ctx.fillText('2. Periode (40ms)', timeToX(0.030), paddingTop - 20);
+      ctx.fillText('3. Periode (60ms)', timeToX(0.050), paddingTop - 20);
+
+      // --- Compute Points & Draw Curves ---
+      const steps = 600; // Resolution
+      const pointsL1 = [];
+      const pointsL2 = [];
+      const pointsL3 = [];
+      const pointsN = [];
+
+      for (let s = 0; s <= steps; s++) {
+        const t = (s / steps) * maxTime;
+        const i1 = a1 * Math.sin(omega * t - phi1);
+        const i2 = a2 * Math.sin(omega * t - phi2);
+        const i3 = a3 * Math.sin(omega * t - phi3);
+        const iN = i1 + i2 + i3;
+
+        pointsL1.push({ x: timeToX(t), y: currentToY(i1) });
+        pointsL2.push({ x: timeToX(t), y: currentToY(i2) });
+        pointsL3.push({ x: timeToX(t), y: currentToY(i3) });
+        pointsN.push({ x: timeToX(t), y: currentToY(iN) });
+      }
+
+      // Helper to draw a continuous curve
+      function drawCurve(points, color, lineWidth = 2, isDashed = false) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        if (isDashed) {
+          ctx.setLineDash([6, 4]);
+        }
+        ctx.beginPath();
+        points.forEach((pt, index) => {
+          if (index === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw Phase Curves (L1, L2, L3)
+      drawCurve(pointsL1, '#ef4444', 2.5); // L1: Rot
+      drawCurve(pointsL2, '#eab308', 2.5); // L2: Gelb
+      drawCurve(pointsL3, '#a855f7', 2.5); // L3: Violett
+
+      // Draw Neutral Conductor Curve (N) - Thicker & Dashed
+      drawCurve(pointsN, '#38bdf8', 3.5, true);
+    }
+
+    // Event Listeners
+    [sliderL1, sliderL2, sliderL3].forEach(slider => {
+      slider.addEventListener('input', draw);
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+
+    // Initial setup
+    resizeCanvas();
+  </script>
+</body>
+</html>
