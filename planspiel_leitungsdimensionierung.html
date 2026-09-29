@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planspiel Leitungsdimensionierung nach DIN VDE</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e293b;
+            --secondary: #0f766e;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --radius: 12px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px 10px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 24px;
+            text-align: center;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            font-size: 0.95rem;
+            color: #93c5fd;
+        }
+
+        .screen {
+            display: none;
+            padding: 30px;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* ------------------ START SCREEN ------------------ */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-dark);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .advisor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .advisor-card {
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+            position: relative;
+            user-select: none;
+        }
+
+        .advisor-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .advisor-card.selected {
+            border-color: var(--primary-light);
+            background-color: #eff6ff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        .advisor-card .check-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: var(--primary-light);
+            color: white;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .advisor-card.selected .check-badge {
+            display: flex;
+        }
+
+        .advisor-avatar {
+            font-size: 3rem;
+            margin-bottom: 8px;
+            display: block;
+            pointer-events: none;
+        }
+
+        .advisor-name {
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+            pointer-events: none;
+        }
+
+        .advisor-desc {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+            pointer-events: none;
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 14px 24px;
+            background-color: var(--primary-light);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            text-align: center;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* ------------------ GAME SCREEN ------------------ */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary-light);
+            width: 20%;
+            transition: width 0.3s ease;
+        }
+
+        .scenario-box {
+            background: #ffffff;
+            border-left: 5px solid var(--primary-light);
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            border-top: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .scenario-box h3 {
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .param-badge-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .param-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .select-control select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .select-control select:focus {
+            border-color: var(--primary-light);
+            outline: none;
+        }
+
+        /* ------------------ HELPER BUBBLE ------------------ */
+        .advisor-section {
+            display: flex;
+            gap: 16px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            align-items: flex-start;
+        }
+
+        .advisor-mini-avatar {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+
+        .advisor-speech-content {
+            flex-grow: 1;
+        }
+
+        .speech-bubble {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            position: relative;
+            margin-top: 8px;
+            font-size: 0.92rem;
+        }
+
+        .help-btn {
+            background: #f1f5f9;
+            color: var(--primary-dark);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .help-btn:hover:not(:disabled) {
+            background: #e2e8f0;
+        }
+
+        /* ------------------ FEEDBACK / EXPLANATION ------------------ */
+        .feedback-box {
+            display: none;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feedback-box.correct {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+
+        .feedback-box.incorrect {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .explanation-details {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(0,0,0,0.15);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        /* ------------------ END SCREEN ------------------ */
+        .certificate {
+            border: 4px double var(--primary-light);
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            background: #fafafa;
+            margin-bottom: 24px;
+        }
+
+        .score-display {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin: 12px 0;
+        }
+
+        .advisor-quote {
+            font-style: italic;
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .screen { padding: 18px; }
+            header h1 { font-size: 1.4rem; }
+            .advisor-grid { grid-template-columns: 1fr 1fr; }
+            .hud { flex-direction: column; gap: 8px; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>⚡ Leitungsdimensionierung VDE</h1>
+        <p>Interaktives Planspiel für Elektrotechnik-Fachkräfte</p>
+    </header>
+
+    <!-- 1. START SCREEN -->
+    <div id="start-screen" class="screen active">
+        <div class="form-group">
+            <label for="nickname">Dein Name / Name des Technikers:</label>
+            <input type="text" id="nickname" placeholder="z. B. Alex" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label>Wähle deine/-n persönliche/-n Fachberater/-in:</label>
+            <div class="advisor-grid" id="advisor-grid">
+                <div class="advisor-card" data-advisor="hansen">
+                    <div class="check-badge">✓</div>
+                    <span class="advisor-avatar">👴🏼</span>
+                    <div class="advisor-name">Meister Hansen</div>
+                    <div class="advisor-desc">Erfahrener Praktiker. Setzt auf solide Faustregeln & Praxiserfahrung.</div>
+                </div>
+                <div class="advisor-card" data-advisor="sarah">
+                    <div class="check-badge">✓</div>
+                    <span class="advisor-avatar">👩🏼‍🔬</span>
+                    <div class="advisor-name">Ingenieurin Sarah</div>
+                    <div class="advisor-desc">Präzise Analytikerin. Rechnet alles exakt nach Normtabelle nach.</div>
+                </div>
+                <div class="advisor-card" data-advisor="felix">
+                    <div class="check-badge">✓</div>
+                    <span class="advisor-avatar">🧑🏼‍🔧</span>
+                    <div class="advisor-name">Azubi Felix</div>
+                    <div class="advisor-desc">Motivierter Kollege. Hilft auf Augenhöhe mit spickzettelfreundlichen Tipps.</div>
+                </div>
+                <div class="advisor-card" data-advisor="sam">
+                    <div class="check-badge">✓</div>
+                    <span class="advisor-avatar">👮🏼‍♂️</span>
+                    <div class="advisor-name">Safety-Sam</div>
+                    <div class="advisor-desc">Penibler Normen-Experte. Sicherheit und VDE-Paragraphen gehen vor!</div>
+                </div>
+            </div>
+        </div>
+
+        <button id="start-btn" class="btn" disabled>Planspiel starten</button>
+    </div>
+
+    <!-- 2. MAIN GAME SCREEN -->
+    <div id="game-screen" class="screen">
+        <div class="hud">
+            <div class="hud-item">👤 Techniker: <span id="hud-name">-</span></div>
+            <div class="hud-item">🎯 Punkte: <span id="hud-score">50</span></div>
+            <div class="hud-item">📋 Aufgabe <span id="hud-step">1</span> / 5</div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+
+        <div class="scenario-box">
+            <h3 id="task-title">Aufgabe Title</h3>
+            <p id="task-desc">Szenariotext...</p>
+            <div class="param-badge-group" id="task-badges"></div>
+        </div>
+
+        <div class="selection-grid">
+            <div class="select-control">
+                <label for="select-cable">Leitungs- / Kabelart:</label>
+                <select id="select-cable">
+                    <option value="">-- Bitte wählen --</option>
+                    <option value="NYM-J">NYM-J (Mantelleitung)</option>
+                    <option value="H07RN-F">H07RN-F (Schwere Gummischlauchleitung)</option>
+                    <option value="NYY-J">NYY-J (Erdkabel)</option>
+                    <option value="H07V-K">H07V-K (Aderleitung flexibel)</option>
+                </select>
+            </div>
+            <div class="select-control">
+                <label for="select-cores">Adern-Anzahl:</label>
+                <select id="select-cores">
+                    <option value="">-- Bitte wählen --</option>
+                    <option value="3">3-adrig (L, N, PE)</option>
+                    <option value="4">4-adrig (L1, L2, L3, PE)</option>
+                    <option value="5">5-adrig (L1, L2, L3, N, PE)</option>
+                </select>
+            </div>
+            <div class="select-control">
+                <label for="select-cross">Aderquerschnitt:</label>
+                <select id="select-cross">
+                    <option value="">-- Bitte wählen --</option>
+                    <option value="1.5">1,5 mm²</option>
+                    <option value="2.5">2,5 mm²</option>
+                    <option value="4">4 mm²</option>
+                    <option value="6">6 mm²</option>
+                    <option value="10">10 mm²</option>
+                    <option value="16">16 mm²</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ADVISOR HELP SECTION -->
+        <div class="advisor-section">
+            <div class="advisor-mini-avatar" id="advisor-avatar">👴🏼</div>
+            <div class="advisor-speech-content">
+                <strong id="advisor-title-name">Meister Hansen</strong>
+                <div class="speech-bubble" id="speech-bubble">
+                    Brauchst du Unterstützung bei der Berechnung? Ich kann dir schrittweise Tipps geben!
+                </div>
+                <button class="help-btn" id="help-btn">💡 Tipp anfordern (Kostet 2 Punkte)</button>
+            </div>
+        </div>
+
+        <!-- FEEDBACK / EXPLANATION CARD -->
+        <div id="feedback-box" class="feedback-box">
+            <h4 id="feedback-title">Ergebnis</h4>
+            <div class="explanation-details" id="feedback-details"></div>
+        </div>
+
+        <button id="submit-btn" class="btn">Lösung einloggen</button>
+        <button id="next-btn" class="btn" style="display: none;">Weiter zur nächsten Aufgabe ➔</button>
+    </div>
+
+    <!-- 3. END SCREEN -->
+    <div id="end-screen" class="screen">
+        <div class="certificate">
+            <h2>Abschluss-Zertifikat</h2>
+            <p>Leitungsdimensionierung nach DIN VDE 0298-4 & DIN VDE 0100-520</p>
+            <br>
+            <p>Hiermit wird bestätigt, dass</p>
+            <h3 id="cert-name" style="color: var(--primary-light); margin: 6px 0;">Max Mustermann</h3>
+            <p>das interaktive Planspiel erfolgreich absolviert hat.</p>
+            
+            <div class="score-display">
+                <span id="final-score">0</span> / 50 Pkt.
+                <div style="font-size: 1.2rem; font-weight: 500; color: var(--text-muted);" id="final-percent">(0%)</div>
+            </div>
+
+            <div class="advisor-quote" id="advisor-final-quote">
+                "Hervorragende Arbeit! Du hast die Leitungen sicher und normgerecht dimensioniert!"
+            </div>
+        </div>
+
+        <button id="restart-btn" class="btn">Planspiel erneut starten</button>
+    </div>
+</div>
+
+<script>
+    // --- TASK DATABASE WITH VDE CALCULATIONS & HINTS ---
+    const TASKS = [
+        {
+            id: 1,
+            title: "Aufgabe 1: Heiße Holzwerkstatt (Kreissäge)",
+            desc: "In einer Schreinerei soll eine Drehstrom-Kreissäge (400 V AC) neu angeschlossen werden. Die Leitung wird in einem Elektroinstallationsrohr auf einer Holzwand verlegt (Verlegeart B2). Da der Raum direkt unter dem Dach liegt, herrscht eine Umgebungstemperatur von 40 °C. Absicherung der Leitung: C16A LS-Schalter. Keine Häufung weiterer Leitungen (f₂ = 1,0).",
+            badges: ["Spannung: 400 V Drehstrom", "In: 16 A", "Temp: 40 °C", "Verlegeart: B2", "Häufung: f₂ = 1,0"],
+            solution: { cable: "NYM-J", cores: "5", cross: "2.5" },
+            hints: {
+                hansen: [
+                    "Bedenke die Hitze unter dem Dach! Bei 40 °C muss der Strombelastbarkeitswert mit einem Umrechnungsfaktor f₁ kleiner als 1,0 korrigiert werden.",
+                    "Der Umrechnungsfaktor f₁ für 40 °C beträgt bei PVC-Leitungen 0,87. Berechne den erforderlichen Mindeststrom Iz = In / f₁ = 16 A / 0,87.",
+                    "16 A / 0,87 ergibt ca. 18,4 A. Eine 1,5 mm² PVC-Leitung (B2, 3 belastete Adern) verträgt bei 30 °C nur 15,5 A -> reicht nicht! Nimm NYM-J, 5-adrig und 2,5 mm²."
+                ],
+                sarah: [
+                    "Formel zur Belastbarkeit: Iz ≥ In / (f₁ · f₂). Berücksichtige den Umgebungs-Temperaturfaktor f₁ laut VDE-Tabelle.",
+                    "Laut DIN VDE 0298-4 gilt für PVC bei 40 °C Umgebungstemperatur: f₁ = 0,87. Somit ist Iz,erf = 16 A / (0,87 · 1,0) = 18,39 A.",
+                    "Ein Querschnitt von 1,5 mm² hat in Verlegeart B2 (3 belastete Adern) Iz = 15,5 A. Wähle daher 2,5 mm² (Iz = 21 A > 18,39 A), 5-adriges NYM-J."
+                ],
+                felix: [
+                    "Warme Räume heizen Kabel auf! Normal rechnet man mit 30 °C, aber hier haben wir 40 °C. Wir müssen das Kabel also etwas dicker wählen.",
+                    "Bei 40 °C kriegt die Leitung nur 87% ihrer Belastbarkeit (f₁ = 0,87). Also 16 A / 0,87 ≈ 18,4 A Mindestbelastbarkeit.",
+                    "1,5 mm² packt bei Verlegeart B2 nur 15,5 A. Deshalb nehmen wir NYM-J mit 5 Adern und 2,5 mm² Querschnitt!"
+                ],
+                sam: [
+                    "Achtung! Nach VDE 0298-4 führt 40 °C zu reduzierter Wärmeabgabe. Es gilt zwingend der Abminderungsfaktor f₁ = 0,87!",
+                    "Erforderliche Strombelastbarkeit: Iz,erf = 16 A / 0,87 = 18,39 A. Prüfung der Verlegeart B2 nach Tabelle 3...",
+                    "1,5 mm² ist mit Iz = 15,5 A unzulässig und würde zur Überhitzung führen! Es muss NYM-J 5x2,5 mm² gewählt werden!"
+                ]
+            },
+            explanation: `
+                <strong>VDE-Lösungsweg:</strong><br>
+                1. <strong>Leitungsart & Adern:</strong> Für ortsfeste Verlegung in Innenräumen eignet sich Mantelleitung <strong>NYM-J</strong>. Für Drehstrom (400 V) werden 5 Adern benötigt (L1, L2, L3, N, PE).<br>
+                2. <strong>Temperaturkorrektur:</strong> Bei 40 °C Umgebungstemperatur gilt für PVC-Isolierung der Faktor f₁ = 0,87.<br>
+                3. <strong>Erforderliche Belastbarkeit:</strong> Iz,erf = In / (f₁ · f₂) = 16 A / (0,87 · 1,0) ≈ 18,39 A.<br>
+                4. <strong>Querschnittsauswahl (Tabelle B2, 3 belastete Adern):</strong><br>
+                - 1,5 mm² → Iz = 15,5 A (Zu gering! ≤ 18,39 A)<br>
+                - 2,5 mm² → Iz = 21,0 A (Ausreichend! > 18,39 A)
+            `
+        },
+        {
+            id: 2,
+            title: "Aufgabe 2: Unterverteilung mit Kabelhäufung",
+            desc: "Es soll eine Zuleitung für eine Unterverteilung in einem Bürogebäude auf einer gelochten Kabelbühne verlegt werden (Verlegeart C). Die Absicherung beträgt 32 A (gG Schmelzsicherung, Drehstrom 400 V). Auf der Kabelbühne werden insgesamt 4 Drehstromleitungen direkt nebeneinander verlegt (Häufung f₂ = 0,77). Umgebungstemperatur liegt bei standardmäßigen 30 °C (f₁ = 1,0).",
+            badges: ["Spannung: 400 V", "In: 32 A", "Temp: 30 °C (f₁=1,0)", "Verlegeart: C", "Häufung: 4 Leitungen (f₂=0,77)"],
+            solution: { cable: "NYM-J", cores: "5", cross: "6" },
+            hints: {
+                hansen: [
+                    "Kabelbühne ist super (Verlegeart C), aber denk an die 4 Kabel nebeneinander. Die heizen sich gegenseitig auf!",
+                    "Bei 4 gegenseitig beeinflussenden Drehstromkabeln nimmt man den Häufungsfaktor f₂ = 0,77. Rechne: 32 A / 0,77.",
+                    "32 A / 0,77 = 41,56 A! 4 mm² bringt bei Verlegeart C nur 34 A. Du musst 6 mm² nehmen (verträgt 44 A). Also NYM-J 5x6 mm²."
+                ],
+                sarah: [
+                    "Hier ist der Reduktionsfaktor für Häufung f₂ maßgeblich. Wende Iz,erf = In / (f₁ · f₂) an.",
+                    "Mit f₁ = 1,0 und f₂ = 0,77 folgt: Iz,erf = 32 A / 0,77 = 41,56 A.",
+                    "Tabelle Verlegeart C (3 belastete Adern): 4 mm² reicht nur bis 34 A. Erst 6 mm² bietet Iz = 44 A (> 41,56 A). Lösung: NYM-J 5x6 mm²."
+                ],
+                felix: [
+                    "Mehrere Kabel auf einem Haufen = Abminderungsfaktor! f₂ ist hier 0,77.",
+                    "Rechne den Zielstrom aus: 32 A geteilt durch 0,77 ist ungefähr 41,6 A.",
+                    "4 mm² kann bei Verlegeart C nur 34 A ab. Daher müssen wir auf 6 mm² gehen! NYM-J, 5-adrig, 6 mm²."
+                ],
+                sam: [
+                    "Häufung gemäß DIN VDE 0298-4 Tabelle 21! 4 Drehstromsysteme erfordern f₂ = 0,77.",
+                    "Rechnerischer Nachweis: Iz,erf = 32 A / (1,0 · 0,77) = 41,56 A.",
+                    "Auswahl 4 mm² würde Brandgefahr bedeuten (Iz = 34 A < 41,56 A). Vorgeschrieben: NYM-J 5x6 mm² (Iz = 44 A)."
+                ]
+            },
+            explanation: `
+                <strong>VDE-Lösungsweg:</strong><br>
+                1. <strong>Leitungsart & Adern:</strong> Standard-Mantelleitung <strong>NYM-J</strong> mit 5 Adern für Drehstrom.<br>
+                2. <strong>Häufungsfaktor:</strong> Für 4 gegenseitig berührende Leitungen gilt f₂ = 0,77.<br>
+                3. <strong>Erforderliche Belastbarkeit:</strong> Iz,erf = In / (f₁ · f₂) = 32 A / (1,0 · 0,77) ≈ 41,56 A.<br>
+                4. <strong>Querschnittsauswahl (Tabelle C, 3 belastete Adern):</strong><br>
+                - 4 mm² → Iz = 34 A (Zu klein!)<br>
+                - 6 mm² → Iz = 44 A (Ausreichend! > 41,56 A)
+            `
+        },
+        {
+            id: 3,
+            title: "Aufgabe 3: Erdkabel für freistehende Garage",
+            desc: "Vom Wohnhaus soll ein Erdkabel zu einer freistehenden Garage verlegt werden, um dort eine Wallbox / Unterverteilung anzuschließen. Die Leitungslänge beträgt L = 35 m. Absicherung im Hauptverteiler: 3-poliger B20 LS-Schalter (20 A, 400 V Drehstrom). Verlegung direkt im Erdboden. Achte auf die zulässige Leitungsart für Erdverlegung sowie den Spannungsfall (max. 3 % zulässig = 12 V bei 400 V).",
+            badges: ["Spannung: 400 V", "In: 20 A", "Länge: 35 m", "Verlegung: Im Erdreich", "Max. ΔU: 3 %"],
+            solution: { cable: "NYY-J", cores: "5", cross: "2.5" },
+            hints: {
+                hansen: [
+                    "Wichtig: Normale NYM-Leitung darf NIEMALS ohne Schutzrohr ins Erdreich! Welche spezielle Erdkabel-Type brauchst du?",
+                    "Die richtige Kabelart ist NYY-J. Schauen wir auf die Länge von 35 m: Reicht 1,5 mm² wegen des Spannungsfalls?",
+                    "Spannungsfall-Formel für 400 V Drehstrom: ΔU = (√3 · L · I) / (κ · A). Bei 1,5 mm² ist ΔU = 14,4 V (> 12 V zulässig!). Du brauchst 2,5 mm²! Wähle NYY-J 5x2,5 mm²."
+                ],
+                sarah: [
+                    "Im Erdreich ist Erdkabel (NYY-J) vorgeschrieben. Thermisch reicht zwar 1,5 mm², aber prüfe zwingend den Spannungsfall ΔU ≤ 3% (12 V).",
+                    "Spannungsfall Drehstrom: ΔU = (1,732 · 35 m · 20 A) / (56 m/(Ω·mm²) · A). Für A = 1,5 mm² ergibt sich ΔU = 14,43 V (3,61 %). Unzulässig!",
+                    "Für A = 2,5 mm² ergibt sich ΔU = 8,66 V (2,16 % ≤ 3 %). Richtige Auslegung: NYY-J, 5-adrig, 2,5 mm²."
+                ],
+                felix: [
+                    "Unter der Erde brauchst du schwarzes Erdkabel NYY-J! NYM vergammelt da mit der Zeit.",
+                    "Bei 35 Metern Länge müssen wir aufpassen, dass am Ende noch genug Spannung ankommt (Spannungsfall!).",
+                    "1,5 mm² verliert zu viel Spannung (über 3 %). Mit 2,5 mm² sind wir super im grünen Bereich. Also NYY-J 5x2,5 mm²!"
+                ],
+                sam: [
+                    "Fehlende Erdkabel-Eignung ist ein gravierender Mangel! Ausschließlich NYY-J ist zugelassen.",
+                    "Überprüfung des Spannungsfalls gemäß DIN VDE 0100-520: ΔU_zul = 3 % von 400 V = 12 V.",
+                    "Bei 1,5 mm² beträgt der Spannungsfall 14,43 V (> 12 V!). Gemäß Norm muss auf NYY-J 5x2,5 mm² erhöht werden (ΔU = 8,66 V)."
+                ]
+            },
+            explanation: `
+                <strong>VDE-Lösungsweg:</strong><br>
+                1. <strong>Leitungsart:</strong> Für Verlegung direkt im Erdreich ist zwingend Erdkabel <strong>NYY-J</strong> vorgeschrieben.<br>
+                2. <strong>Thermische Belastbarkeit:</strong> Bei Erdverlegung ist 1,5 mm² thermisch bereits ausreichend (Iz > 20 A).<br>
+                3. <strong>Spannungsfallprüfung (DIN VDE 0100-520):</strong> Max. zulässig: ΔU_zul = 3 % von 400 V = 12 V.<br>
+                - Formel Drehstrom: ΔU = (√3 · L · I) / (κ · A) mit κ_Cu = 56 m/(Ω·mm²)<br>
+                - Für 1,5 mm²: ΔU = (1,732 · 35 · 20) / (56 · 1,5) = 14,43 V → 3,61 % > 3 % (Unzulässig!)<br>
+                - Für 2,5 mm²: ΔU = (1,732 · 35 · 20) / (56 · 2,5) = 8,66 V → 2,16 % ≤ 3 % (Normgerecht!)
+            `
+        },
+        {
+            id: 4,
+            title: "Aufgabe 4: Baustellenanschluss im Außenbereich",
+            desc: "Für einen mobilen Baustromverteiler im Außenbereich soll eine flexible Anschlussleitung ausgelegt werden. Der Verteiler wird über eine CEE-Steckdose (400 V Drehstrom, 32 A Absicherung) versorgt. Die Leitung liegt frei im Freien auf dem Boden und ist hohen mechanischen Beanspruchungen (Überfahren, Ziehen) ausgesetzt.",
+            badges: ["Spannung: 400 V", "In: 32 A", "Einsatz: Mobil / Außenbereich", "Beanspruchung: Schwer mechanisch"],
+            solution: { cable: "H07RN-F", cores: "5", cross: "6" },
+            hints: {
+                hansen: [
+                    "Auf der Baustelle wird geschliffen und gekarrt. Eine feste Mantelleitung bricht da sofort! Wir brauchen schwere Gummileitung.",
+                    "Die Normbezeichnung für schwere Gummischlauchleitung lautet H07RN-F. Wie viel Strom muss sie bei 32 A Absicherung abkönnen?",
+                    "Frei in Luft verträgt 4 mm² H07RN-F nur 30 A (zu wenig für 32 A!). Bei 6 mm² sind es 38 A. Wähle H07RN-F, 5-adrig, 6 mm²."
+                ],
+                sarah: [
+                    "Mechanisch hoch beanspruchte flexible Leitungen im Freien erfordern nach VDE 0285-525 den Typ H07RN-F.",
+                    "Der Nennstrom der Schutzeinrichtung beträgt In = 32 A. Verlegeart frei in Luft (3 belastete Adern).",
+                    "Belastbarkeitstabelle H07RN-F: 4 mm² -> Iz = 30 A (< 32 A). 6 mm² -> Iz = 38 A (≥ 32 A). Korrekte Wahl: H07RN-F 5x6 mm²."
+                ],
+                felix: [
+                    "Draußen auf der Baustelle musst du die robuste schwarze Gummileitung nehmen: H07RN-F!",
+                    "Bei 32 A reicht ein 4 mm² Gummikabel nicht ganz aus, weil das nur für 30 A zugelassen ist.",
+                    "Wir müssen eine Nummer größer wählen: 6 mm² hält bis 38 A aus! Nimm H07RN-F mit 5 Adern und 6 mm²."
+                ],
+                sam: [
+                    "Auf Baustellen nach DGUV Vorschrift 3 und VDE 0100-704 sind Starrkabel oder leichte Schlauchleitungen streng verboten!",
+                    "Zulässig ist ausschließlich schwere Gummischlauchleitung H07RN-F (oder gleichwertig).",
+                    "Bei In = 32 A ist 4 mm² (Iz = 30 A) ein Normverstoß! Zulässig ist erst H07RN-F 5x6 mm² (Iz = 38 A)."
+                ]
+            },
+            explanation: `
+                <strong>VDE-Lösungsweg:</strong><br>
+                1. <strong>Leitungsart:</strong> Für raue Baustellenbedingungen im Außenbereich ist schwere Gummischlauchleitung <strong>H07RN-F</strong> zwingend erforderlich.<br>
+                2. <strong>Adern-Anzahl:</strong> 5-adrig für CEE-Drehstromanschluss (L1, L2, L3, N, PE).<br>
+                3. <strong>Strombelastbarkeit (Frei in Luft, 3 belastete Adern):</strong><br>
+                - 4 mm² → Iz = 30 A (Zu gering für In = 32 A!)<br>
+                - 6 mm² → Iz = 38 A (Ausreichend! ≥ 32 A)
+            `
+        },
+        {
+            id: 5,
+            title: "Aufgabe 5: Weite Distanz im Wechselstromkreis",
+            desc: "In einer großen Lagerhalle soll eine einzelne 230 V Steckdose für ein Diagnosegerät installiert werden. Absicherung: B16A LS-Schalter (16 A). Verlegung in einer gedämmten Hohlwand (Verlegeart A2). Die einfache Leitungslänge beträgt L = 38 m. Der Spannungsfall darf maximal 3 % betragen (3 % von 230 V = 6,9 V). Standardtemperatur 30 °C.",
+            badges: ["Spannung: 230 V Wechselstrom", "In: 16 A", "Länge: 38 m", "Verlegeart: A2 (in Dämmung)", "Max. ΔU: 3 % (6,9 V)"],
+            solution: { cable: "NYM-J", cores: "3", cross: "4" },
+            hints: {
+                hansen: [
+                    "Verlegeart A2 in einer gedämmten Wand ist tückisch – die Wärme staut sich! Außerdem sind 38 m eine stramme Länge für 230 V.",
+                    "Bei Verlegeart A2 verträgt 1,5 mm² nur 15,5 A. Das reicht schon thermisch nicht für 16 A! Aber wie sieht es bei 2,5 mm² mit dem Spannungsfall aus?",
+                    "Wechselstrom-Formel: ΔU = (2 · L · I) / (κ · A). Bei 2,5 mm² hast du ΔU = 8,68 V (3,77 % > 3 %). Erst bei 4 mm² sinkt ΔU auf 5,43 V (2,36 %). Wähle NYM-J 3x4 mm²!"
+                ],
+                sarah: [
+                    "Schritt 1: Thermische Prüfung in Verlegeart A2 (2 belastete Adern): 1,5 mm² hat Iz = 15,5 A (< 16 A). 2,5 mm² hat Iz = 19,5 A (thermisch OK).",
+                    "Schritt 2: Spannungsfallprüfung für 230 V Wechselstrom: ΔU = (2 · 38 m · 16 A) / (56 · A). Für 2,5 mm² ergibt sich ΔU = 8,68 V (3,77 % > 3 %).",
+                    "Wegen Überschreitung des Spannungsfalls muss der Querschnitt auf 4 mm² erhöht werden (ΔU = 5,43 V = 2,36 % ≤ 3 %). Wähle NYM-J 3x4 mm²."
+                ],
+                felix: [
+                    "Gedämmte Wand (A2) bedeutet schlechte Kühlung! 1,5 mm² ist für 16 A schon im Ansatz zu dünn.",
+                    "Mit 2,5 mm² wäre es zwar warm genug, aber bei 38 Metern fällt zu viel Spannung ab!",
+                    "Damit am Ende der 38 m noch genug Spannung ankommt, müssen wir auf 4 mm² gehen. NYM-J 3-adrig mit 4 mm²!"
+                ],
+                sam: [
+                    "Verlegeart A2 gemäß DIN VDE 0298-4: 1,5 mm² mit Iz = 15,5 A verletzt Iz ≥ In (16 A)!",
+                    "Spannungsfallkontrolle gemäß DIN VDE 0100-520: Max. zulässig 6,9 V.",
+                    "Mit 2,5 mm² ergibt sich ΔU = 8,68 V. Das verletzt die VDE-Vorgabe! Vorschriftsmäßige Lösung: NYM-J 3x4 mm² (ΔU = 5,43 V)."
+                ]
+            },
+            explanation: `
+                <strong>VDE-Lösungsweg:</strong><br>
+                1. <strong>Leitungsart & Adern:</strong> Mantelleitung <strong>NYM-J</strong> mit 3 Adern (L, N, PE) für 230 V Wechselstrom.<br>
+                2. <strong>Thermische Prüfung (Verlegeart A2 in Dämmung, 2 belastete Adern):</strong><br>
+                - 1,5 mm² → Iz = 15,5 A (Zu klein für 16 A Absicherung!)<br>
+                - 2,5 mm² → Iz = 19,5 A (Thermisch ausreichend).<br>
+                3. <strong>Spannungsfallprüfung (Wechselstrom 230 V):</strong> Max. zulässig: ΔU_zul = 3 % von 230 V = 6,9 V.<br>
+                - Formel Wechselstrom: ΔU = (2 · L · I) / (κ · A)<br>
+                - Für 2,5 mm²: ΔU = (2 · 38 · 16) / (56 · 2,5) = 8,68 V → 3,77 % > 3 % (Unzulässig!)<br>
+                - Für 4 mm²: ΔU = (2 · 38 · 16) / (56 · 4,0) = 5,43 V → 2,36 % ≤ 3 % (Normgerecht!)
+            `
+        }
+    ];
+
+    const ADVISORS = {
+        hansen: { name: "Meister Hansen", avatar: "👴🏼" },
+        sarah: { name: "Ingenieurin Sarah", avatar: "👩🏼‍🔬" },
+        felix: { name: "Azubi Felix", avatar: "🧑🏼‍🔧" },
+        sam: { name: "Safety-Sam", avatar: "👮🏼‍♂️" }
+    };
+
+    // --- GAME STATE ---
+    let gameState = {
+        nickname: "",
+        advisorKey: null,
+        currentStep: 0,
+        score: 50,
+        hintsUsedThisTask: 0
+    };
+
+    // --- DOM ELEMENTS ---
+    const screens = {
+        start: document.getElementById('start-screen'),
+        game: document.getElementById('game-screen'),
+        end: document.getElementById('end-screen')
+    };
+
+    const nicknameInput = document.getElementById('nickname');
+    const startBtn = document.getElementById('start-btn');
+    const advisorGrid = document.getElementById('advisor-grid');
+
+    const hudName = document.getElementById('hud-name');
+    const hudScore = document.getElementById('hud-score');
+    const hudStep = document.getElementById('hud-step');
+    const progressBar = document.getElementById('progress-bar');
+
+    const taskTitle = document.getElementById('task-title');
+    const taskDesc = document.getElementById('task-desc');
+    const taskBadges = document.getElementById('task-badges');
+
+    const selectCable = document.getElementById('select-cable');
+    const selectCores = document.getElementById('select-cores');
+    const selectCross = document.getElementById('select-cross');
+
+    const advisorAvatar = document.getElementById('advisor-avatar');
+    const advisorTitleName = document.getElementById('advisor-title-name');
+    const speechBubble = document.getElementById('speech-bubble');
+    const helpBtn = document.getElementById('help-btn');
+
+    const feedbackBox = document.getElementById('feedback-box');
+    const feedbackTitle = document.getElementById('feedback-title');
+    const feedbackDetails = document.getElementById('feedback-details');
+
+    const submitBtn = document.getElementById('submit-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const restartBtn = document.getElementById('restart-btn');
+
+    // --- INITIALIZATION & EVENT LISTENERS ---
+    nicknameInput.addEventListener('input', validateStartForm);
+    nicknameInput.addEventListener('keyup', validateStartForm);
+
+    // Event Delegation for Advisor Cards Selection
+    advisorGrid.addEventListener('click', (e) => {
+        const card = e.target.closest('.advisor-card');
+        if (!card) return;
+
+        document.querySelectorAll('.advisor-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        
+        gameState.advisorKey = card.dataset.advisor;
+        validateStartForm();
+    });
+
+    function validateStartForm() {
+        const hasName = nicknameInput.value.trim().length > 0;
+        const hasAdvisor = gameState.advisorKey !== null && gameState.advisorKey !== undefined;
+        startBtn.disabled = !(hasName && hasAdvisor);
+    }
+
+    startBtn.addEventListener('click', startGame);
+    helpBtn.addEventListener('click', requestHelp);
+    submitBtn.addEventListener('click', evaluateTask);
+    nextBtn.addEventListener('click', nextTask);
+    restartBtn.addEventListener('click', restartGame);
+
+    // --- GAME LOGIC ---
+    function startGame() {
+        const nameVal = nicknameInput.value.trim();
+        if (!nameVal || !gameState.advisorKey) return;
+
+        gameState.nickname = nameVal;
+        gameState.currentStep = 0;
+        gameState.score = 50;
+
+        hudName.textContent = gameState.nickname;
+        hudScore.textContent = gameState.score;
+
+        const adv = ADVISORS[gameState.advisorKey];
+        advisorAvatar.textContent = adv.avatar;
+        advisorTitleName.textContent = adv.name;
+
+        switchScreen('game');
+        loadTask(0);
+    }
+
+    function loadTask(stepIndex) {
+        gameState.currentStep = stepIndex;
+        gameState.hintsUsedThisTask = 0;
+
+        const task = TASKS[stepIndex];
+
+        // Reset HUD & Progress
+        hudStep.textContent = stepIndex + 1;
+        progressBar.style.width = `${((stepIndex + 1) / TASKS.length) * 100}%`;
+
+        // Load Task Content
+        taskTitle.textContent = task.title;
+        taskDesc.textContent = task.desc;
+        
+        taskBadges.innerHTML = "";
+        task.badges.forEach(b => {
+            const badge = document.createElement('span');
+            badge.className = 'param-badge';
+            badge.textContent = b;
+            taskBadges.appendChild(badge);
+        });
+
+        // Reset Selects
+        selectCable.value = "";
+        selectCores.value = "";
+        selectCross.value = "";
+        selectCable.disabled = false;
+        selectCores.disabled = false;
+        selectCross.disabled = false;
+
+        // Reset Advisor Speech
+        speechBubble.textContent = `Hallo ${gameState.nickname}! Brauchst du Hilfe bei dieser Aufgabe? Klicke auf den Button!`;
+        helpBtn.disabled = false;
+        helpBtn.textContent = "💡 Tipp anfordern (Kostet 2 Punkte)";
+        helpBtn.style.display = 'inline-block';
+
+        // Reset Feedback Box & Buttons
+        feedbackBox.style.display = 'none';
+        feedbackBox.className = 'feedback-box';
+        submitBtn.style.display = 'block';
+        nextBtn.style.display = 'none';
+    }
+
+    function requestHelp() {
+        if (gameState.hintsUsedThisTask >= 3) return;
+
+        gameState.hintsUsedThisTask++;
+        gameState.score = Math.max(0, gameState.score - 2);
+        hudScore.textContent = gameState.score;
+
+        const task = TASKS[gameState.currentStep];
+        const hintList = task.hints[gameState.advisorKey];
+        const currentHint = hintList[gameState.hintsUsedThisTask - 1];
+
+        speechBubble.textContent = `[Tipp ${gameState.hintsUsedThisTask}/3]: ${currentHint}`;
+
+        if (gameState.hintsUsedThisTask >= 3) {
+            helpBtn.disabled = true;
+            helpBtn.textContent = "Alle Tipps aufgebraucht";
+        }
+    }
+
+    function evaluateTask() {
+        const cableVal = selectCable.value;
+        const coresVal = selectCores.value;
+        const crossVal = selectCross.value;
+
+        if (!cableVal || !coresVal || !crossVal) {
+            alert("Bitte wähle Werte für Leitungsart, Adern-Anzahl und Aderquerschnitt aus!");
+            return;
+        }
+
+        const task = TASKS[gameState.currentStep];
+        const sol = task.solution;
+
+        const isCableCorrect = (cableVal === sol.cable);
+        const isCoresCorrect = (coresVal === sol.cores);
+        const isCrossCorrect = (crossVal === sol.cross);
+
+        const isFullyCorrect = isCableCorrect && isCoresCorrect && isCrossCorrect;
+
+        if (!isFullyCorrect) {
+            gameState.score = Math.max(0, gameState.score - 6);
+            hudScore.textContent = gameState.score;
+        }
+
+        // Lock Selects
+        selectCable.disabled = true;
+        selectCores.disabled = true;
+        selectCross.disabled = true;
+
+        // Show Feedback Box
+        feedbackBox.style.display = 'block';
+        if (isFullyCorrect) {
+            feedbackBox.className = 'feedback-box correct';
+            feedbackTitle.textContent = "✅ Hervorragend! Richtige Auslegung!";
+        } else {
+            feedbackBox.className = 'feedback-box incorrect';
+            feedbackTitle.textContent = "❌ Leider nicht ganz richtig!";
+        }
+
+        let resultSummary = `
+            <strong>Deine Eingabe:</strong> ${cableVal}, ${coresVal}-adrig, ${crossVal} mm² <br>
+            <strong>Musterlösung:</strong> ${sol.cable}, ${sol.cores}-adrig, ${sol.cross} mm²<br><br>
+        `;
+
+        feedbackDetails.innerHTML = resultSummary + task.explanation;
+
+        // Advisor Comment
+        const advName = ADVISORS[gameState.advisorKey].name;
+        if (isFullyCorrect) {
+            speechBubble.textContent = `${advName}: Genau so wird das gemacht! Sauber und normgerecht berechnet.`;
+        } else {
+            speechBubble.textContent = `${advName}: Nicht schlimm! Schau dir den Lösungsweg oben genau an. Aus Fehlern lernt man!`;
+        }
+
+        helpBtn.style.display = 'none';
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'block';
+    }
+
+    function nextTask() {
+        if (gameState.currentStep + 1 < TASKS.length) {
+            loadTask(gameState.currentStep + 1);
+        } else {
+            showEndScreen();
+        }
+    }
+
+    function showEndScreen() {
+        switchScreen('end');
+        document.getElementById('cert-name').textContent = gameState.nickname;
+        
+        const scoreElem = document.getElementById('final-score');
+        const percentElem = document.getElementById('final-percent');
+        const quoteElem = document.getElementById('advisor-final-quote');
+
+        const score = gameState.score;
+        const percent = Math.round((score / 50) * 100);
+
+        scoreElem.textContent = score;
+        percentElem.textContent = `(${percent} %)`;
+
+        const adv = ADVISORS[gameState.advisorKey];
+
+        let quote = "";
+        if (percent >= 90) {
+            quote = `"${adv.name} sagt: Absoluter Profi! Du beherrschst die DIN VDE Leitungsdimensionierung in- und auswendig!"`;
+        } else if (percent >= 70) {
+            quote = `"${adv.name} sagt: Gute Leistung! Du hast das nötige Rüstzeug für die Praxis. Noch etwas Übung und du bist unschlagbar!"`;
+        } else if (percent >= 50) {
+            quote = `"${adv.name} sagt: Bestanden! Die Grundlagen sitzen, aber bei kniffligen Sonderfällen (Häufung/Spannungsfall) lohnt sich noch ein Blick in die Norm."`;
+        } else {
+            quote = `"${adv.name} sagt: Da waren noch einige Stolpersteine dabei. Wiederhole das Planspiel am besten gleich noch einmal!"`;
+        }
+
+        quoteElem.textContent = quote;
+    }
+
+    function restartGame() {
+        gameState.nickname = "";
+        gameState.advisorKey = null;
+        gameState.currentStep = 0;
+        gameState.score = 50;
+
+        nicknameInput.value = "";
+        document.querySelectorAll('.advisor-card').forEach(c => c.classList.remove('selected'));
+        validateStartForm();
+
+        switchScreen('start');
+    }
+
+    function switchScreen(screenKey) {
+        Object.keys(screens).forEach(key => {
+            screens[key].classList.remove('active');
+        });
+        screens[screenKey].classList.add('active');
+    }
+</script>
+
+</body>
+</html>
