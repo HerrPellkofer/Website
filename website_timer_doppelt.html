@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digitaler Doppel-Timer</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #22c55e;
+      --success-hover: #16a34a;
+      --border-color: #334155;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Toggle Switch Component */
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-label {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 28px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--border-color);
+      transition: .3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Main Container */
+    main {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Timer Card Component */
+    .timer-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .timer-card.hidden {
+      display: none;
+    }
+
+    .timer-card.alarm {
+      animation: pulse-red 1s infinite alternate;
+      border-color: var(--danger);
+    }
+
+    @keyframes pulse-red {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+        background-color: var(--card-bg);
+      }
+      100% {
+        box-shadow: 0 0 30px 10px rgba(239, 68, 68, 0.7);
+        background-color: #2c1218;
+      }
+    }
+
+    /* Editable Title */
+    .timer-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: transparent;
+      border: 1px dashed transparent;
+      border-radius: 6px;
+      padding: 0.25rem 0.75rem;
+      text-align: center;
+      outline: none;
+      max-width: 90%;
+      transition: border-color 0.2s;
+    }
+
+    .timer-title:hover, .timer-title:focus {
+      border-color: var(--border-color);
+      background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Timer Display */
+    .timer-display {
+      font-family: 'Courier New', Courier, monospace, sans-serif;
+      font-size: clamp(4.5rem, 15vw, 8.5rem);
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text-main);
+      margin: 1rem 0;
+      line-height: 1;
+      user-select: none;
+    }
+
+    /* Control Groups */
+    .controls-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      width: 100%;
+    }
+
+    .adjust-group, .action-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Buttons */
+    .btn {
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      user-select: none;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-adjust {
+      background-color: rgba(255, 255, 255, 0.07);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-adjust:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-start {
+      background-color: var(--success);
+      color: white;
+      min-width: 120px;
+    }
+
+    .btn-start:hover {
+      background-color: var(--success-hover);
+    }
+
+    .btn-pause {
+      background-color: #f59e0b;
+      color: white;
+      min-width: 120px;
+    }
+
+    .btn-pause:hover {
+      background-color: #d97706;
+    }
+
+    .btn-reset {
+      background-color: rgba(255, 255, 255, 0.07);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-reset:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem 0.5rem;
+      }
+      .timer-card {
+        padding: 1.5rem 0.75rem;
+      }
+      .btn {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Digitaler Timer</h1>
+    <label class="toggle-container">
+      <span class="toggle-label">Zweiten Timer aktivieren</span>
+      <span class="switch">
+        <input type="checkbox" id="toggleSecondTimer">
+        <span class="slider"></span>
+      </span>
+    </label>
+  </header>
+
+  <main>
+    <!-- Timer 1 -->
+    <section class="timer-card" id="timerCard1">
+      <input type="text" class="timer-title" value="Arbeitsphase" aria-label="Timer Überschrift">
+      <div class="timer-display" id="display1">15:00</div>
+      
+      <div class="controls-wrapper">
+        <div class="adjust-group">
+          <button class="btn btn-adjust" onclick="adjustTime(1, -60)">-1 Min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(1, -10)">-10 Sek</button>
+          <button class="btn btn-adjust" onclick="adjustTime(1, 10)">+10 Sek</button>
+          <button class="btn btn-adjust" onclick="adjustTime(1, 60)">+1 Min</button>
+        </div>
+
+        <div class="action-group">
+          <button class="btn btn-start" id="startBtn1" onclick="toggleTimer(1)">Start</button>
+          <button class="btn btn-reset" onclick="resetTimer(1)">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timer 2 -->
+    <section class="timer-card hidden" id="timerCard2">
+      <input type="text" class="timer-title" value="Pause" aria-label="Timer Überschrift">
+      <div class="timer-display" id="display2">05:00</div>
+      
+      <div class="controls-wrapper">
+        <div class="adjust-group">
+          <button class="btn btn-adjust" onclick="adjustTime(2, -60)">-1 Min</button>
+          <button class="btn btn-adjust" onclick="adjustTime(2, -10)">-10 Sek</button>
+          <button class="btn btn-adjust" onclick="adjustTime(2, 10)">+10 Sek</button>
+          <button class="btn btn-adjust" onclick="adjustTime(2, 60)">+1 Min</button>
+        </div>
+
+        <div class="action-group">
+          <button class="btn btn-start" id="startBtn2" onclick="toggleTimer(2)">Start</button>
+          <button class="btn btn-reset" onclick="resetTimer(2)">Reset</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // State object for timers
+    const timers = {
+      1: {
+        totalSeconds: 900, // 15:00
+        initialSeconds: 900,
+        intervalId: null,
+        isRunning: false
+      },
+      2: {
+        totalSeconds: 300, // 05:00
+        initialSeconds: 300,
+        intervalId: null,
+        isRunning: false
+      }
+    };
+
+    // Format seconds into MM:SS
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    // Update display UI
+    function updateDisplay(id) {
+      const displayEl = document.getElementById(`display${id}`);
+      displayEl.textContent = formatTime(timers[id].totalSeconds);
+    }
+
+    // Start or Pause Timer
+    function toggleTimer(id) {
+      const timer = timers[id];
+      const startBtn = document.getElementById(`startBtn${id}`);
+      const cardEl = document.getElementById(`timerCard${id}`);
+
+      if (timer.isRunning) {
+        // Pause
+        clearInterval(timer.intervalId);
+        timer.isRunning = false;
+        startBtn.textContent = 'Start';
+        startBtn.className = 'btn btn-start';
+      } else {
+        // Stop any active alarm on start
+        cardEl.classList.remove('alarm');
+
+        if (timer.totalSeconds <= 0) return;
+
+        // Start
+        timer.isRunning = true;
+        startBtn.textContent = 'Pause';
+        startBtn.className = 'btn btn-pause';
+
+        timer.intervalId = setInterval(() => {
+          if (timer.totalSeconds > 0) {
+            timer.totalSeconds--;
+            updateDisplay(id);
+
+            if (timer.totalSeconds === 0) {
+              clearInterval(timer.intervalId);
+              timer.isRunning = false;
+              startBtn.textContent = 'Start';
+              startBtn.className = 'btn btn-start';
+              triggerAlarm(id);
+            }
+          }
+        }, 1000);
+      }
+    }
+
+    // Reset Timer
+    function resetTimer(id) {
+      const timer = timers[id];
+      const startBtn = document.getElementById(`startBtn${id}`);
+      const cardEl = document.getElementById(`timerCard${id}`);
+
+      clearInterval(timer.intervalId);
+      timer.isRunning = false;
+      timer.totalSeconds = timer.initialSeconds;
+      
+      startBtn.textContent = 'Start';
+      startBtn.className = 'btn btn-start';
+      cardEl.classList.remove('alarm');
+      
+      updateDisplay(id);
+    }
+
+    // Adjust Time (+/- seconds)
+    function adjustTime(id, amount) {
+      const timer = timers[id];
+      const cardEl = document.getElementById(`timerCard${id}`);
+
+      cardEl.classList.remove('alarm');
+      
+      let newTotal = timer.totalSeconds + amount;
+      if (newTotal < 0) newTotal = 0;
+      
+      timer.totalSeconds = newTotal;
+      // Also update initial seconds if timer is not running
+      if (!timer.isRunning) {
+        timer.initialSeconds = newTotal;
+      }
+      
+      updateDisplay(id);
+    }
+
+    // Audio & Visual Alarm Signal
+    function triggerAlarm(id) {
+      const cardEl = document.getElementById(`timerCard${id}`);
+      cardEl.classList.add('alarm');
+
+      // Play sound using Web Audio API (no external file needed)
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playBeep(delay) {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Pitch A5
+            
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+          }, delay);
+        }
+
+        // 3 Beeps sequence
+        playBeep(0);
+        playBeep(500);
+        playBeep(1000);
+      } catch (e) {
+        console.warn('Audio Context nicht verfügbar:', e);
+      }
+    }
+
+    // Toggle visibility of the second timer
+    document.getElementById('toggleSecondTimer').addEventListener('change', (e) => {
+      const timerCard2 = document.getElementById('timerCard2');
+      if (e.target.checked) {
+        timerCard2.classList.remove('hidden');
+      } else {
+        timerCard2.classList.add('hidden');
+        // Optionally pause timer 2 when hidden
+        if (timers[2].isRunning) {
+          toggleTimer(2);
+        }
+      }
+    });
+
+    // Initialize displays on load
+    updateDisplay(1);
+    updateDisplay(2);
+  </script>
+</body>
+</html>
